@@ -1,0 +1,4 @@
+ijson
+jsonlines
+sentence-transformers
+torch
