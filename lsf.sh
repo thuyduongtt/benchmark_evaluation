@@ -34,6 +34,7 @@ module load conda
 # cd ~/
  
 # Perform experiments
+source activate evaluation
 python analysis_result.py --ds unbalanced --model blip2
 
 
