@@ -373,8 +373,8 @@ if __name__ == '__main__':
     parser.add_argument('--model', type=str, required=True)
     args = parser.parse_args()
 
-    # compute_score([f'result_{args.model}/output_{args.ds}', f'result_{args.model}/output_{args.ds}_test'], f'result_{args.model}/output_{args.ds}_score')
-    anaylysis_score(f'result_{args.model}/output_{args.ds}_score')
+    compute_score([f'result_{args.model}/output_{args.ds}', f'result_{args.model}/output_{args.ds}_test'], f'result_{args.model}/output_{args.ds}_score')
+    # anaylysis_score(f'result_{args.model}/output_{args.ds}_score')
 
     # compute_score_multichoice(f'/Volumes/DATA/_Code/Git/tdthesis/ds/output/small_set/export_{args.ds}',
     #                           f'result_llava/{args.ds}.jsonl', f'result_llava/answers/merge_{args.ds}.jsonl')

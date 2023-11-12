@@ -37,6 +37,5 @@ module load conda
 source activate evaluation
 python analysis_result.py --ds unbalanced --model blip2
 
-
 # No longer exit on any error.
 set +e

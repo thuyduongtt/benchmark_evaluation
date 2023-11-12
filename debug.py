@@ -5,6 +5,23 @@ from analysis_result import extract_answer, exact_match_score, substring_score, 
 import os
 
 
+# count the number of rows in result file
+def count_rows(path_to_result_dir):
+    all_files = []
+    for file in Path(path_to_result_dir).iterdir():
+        if file.suffix != '.csv':
+            continue
+        all_files.append(file.name)
+
+    all_files.sort()  # sort by name in alphabet
+
+    for file in all_files:
+        with open(f"{path_to_result_dir}/{file}") as csv_file:
+            csv_reader = csv.DictReader(csv_file)
+            n_row = sum(1 for _ in csv_reader)
+            print(file, '|', n_row)
+
+
 # there is a bug in calculating substring_score
 def find_wrong_substring_score(path_to_score_dir):
     limit = 10
@@ -72,7 +89,8 @@ def find_duplicate_results(path_to_result_dir, auto_remove=False):
                 elif id_flag[img_id]['index'] < i - 1:
                     # same image_id but not in 2 continuous files ==> duplicated file
                     print(id_flag[img_id]['file'], '|', file, '|',
-                          check_identity(f"{path_to_result_dir}/{id_flag[img_id]['file']}", f"{path_to_result_dir}/{file}"))
+                          check_identity(f"{path_to_result_dir}/{id_flag[img_id]['file']}",
+                                         f"{path_to_result_dir}/{file}"))
                     to_remove_files.append(file)
                     break
 
@@ -151,5 +169,6 @@ def fix_substring_score(path_to_score_dir, limit=0):
 
 if __name__ == '__main__':
     # find_wrong_substring_score('result_blip2/output_balanced_10_score')
-    # find_duplicate_results('result_lavis/output_balanced_10', auto_remove=False)
-    fix_substring_score('result_kosmos/output_balanced_10_score')
+    # find_duplicate_results('result_lavis/output_unbalanced', auto_remove=False)
+    count_rows('result_lavis/output_balanced_10')
+    # fix_substring_score('result_kosmos/output_balanced_10_score')
