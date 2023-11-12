@@ -181,7 +181,12 @@ def compute_score(list_of_result_dir, output_dir, limit=0):
 
             csv_writer = csv.writer(score_file)
 
-            row = next(csv_reader)
+            try:
+                row = next(csv_reader)
+            except:
+                print('Error reading header row:', csvfile)
+                continue
+
             csv_writer.writerow([*row, *METRICS])
 
             for row in csv_reader:
