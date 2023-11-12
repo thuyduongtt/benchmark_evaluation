@@ -173,7 +173,12 @@ def compute_score(list_of_result_dir, output_dir, limit=0):
 
             csv_reader = csv.reader(f)
 
-            score_file = open(f'{output_dir}/{csvfile.name}', 'w')
+            try:
+                score_file = open(f'{output_dir}/{csvfile.name}', 'w', encoding='utf-8')
+            except:
+                print('Error creating CSV file:', f'{output_dir}/{csvfile.name}')
+                continue
+
             csv_writer = csv.writer(score_file)
 
             row = next(csv_reader)
