@@ -35,7 +35,7 @@ module load conda
  
 # Perform experiments
 source activate evaluation
-source run.sh $LSB_JOBINDEX
+./run.sh $LSB_JOBINDEX
 
 
 # No longer exit on any error.
