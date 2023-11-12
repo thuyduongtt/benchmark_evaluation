@@ -35,7 +35,9 @@ module load conda
  
 # Perform experiments
 source activate evaluation
-python analysis_result.py --ds unbalanced --model blip2
+python analysis_result.py --ds unbalanced --model lavis
+python analysis_result.py --ds balanced_10 --model lavis
+
 
 # No longer exit on any error.
 set +e
