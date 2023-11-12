@@ -1,4 +1,4 @@
-#BSUB -J BLIP               # Specify the job name
+#BSUB -J EVAL[1-6]               # Specify the job name
 #BSUB -W 24:00                # Specify the maximum runtime in "hours:minutes"
 #BSUB -o %x.%j.out            # Determine where the output will be written
 #BSUB -e %x.%j.err            # The same goes for the error file
@@ -35,8 +35,7 @@ module load conda
  
 # Perform experiments
 source activate evaluation
-python analysis_result.py --ds unbalanced --model lavis
-python analysis_result.py --ds balanced_10 --model lavis
+source run.sh $LSB_JOBINDEX
 
 
 # No longer exit on any error.
