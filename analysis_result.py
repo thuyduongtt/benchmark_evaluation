@@ -211,8 +211,7 @@ def compute_score(list_of_result_dir, output_dir, limit=0):
                 if 'substring' in METRICS:
                     current_score.substring = substring_score(prediction, answer)
                 if 'similarity' in METRICS:
-                    # current_score.similarity = similarity_score(prediction, answer)
-                    current_score.similarity = 0
+                    current_score.similarity = similarity_score(prediction, answer)
 
                 csv_writer.writerow([*row, *current_score.to_list()])
 
