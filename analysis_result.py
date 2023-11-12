@@ -173,7 +173,7 @@ def compute_score(list_of_result_dir, output_dir, limit=0):
 
             csv_reader = csv.reader(f)
 
-            score_file = open(f'{output_dir}/{csvfile.name}', 'w', encoding='utf-8')
+            score_file = open(f'{output_dir}/{csvfile.name}', 'w')
             csv_writer = csv.writer(score_file)
 
             row = next(csv_reader)
@@ -198,7 +198,8 @@ def compute_score(list_of_result_dir, output_dir, limit=0):
                 if 'substring' in METRICS:
                     current_score.substring = substring_score(prediction, answer)
                 if 'similarity' in METRICS:
-                    current_score.similarity = similarity_score(prediction, answer)
+                    # current_score.similarity = similarity_score(prediction, answer)
+                    current_score.similarity = 0
 
                 csv_writer.writerow([*row, *current_score.to_list()])
 
