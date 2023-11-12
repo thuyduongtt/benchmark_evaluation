@@ -7,6 +7,8 @@ import torch
 from sentence_transformers import SentenceTransformer, util
 import jsonlines
 import ijson
+import spacy
+from SUBSTRING_EXCEPTIONS import SUBSTRING_EXCEPTIONS
 
 ANSWER_COL_INDEX = 3
 PREDICTION_COL_INDEX = 4
@@ -17,6 +19,9 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # https://github.com/UKPLab/sentence-transformers
 similarity_model = None
+
+en = spacy.load("en_core_web_sm")
+stopwords = en.Defaults.stop_words
 
 
 class Score:
@@ -56,13 +61,26 @@ def substring_score(pred, gt):
     if exact_match_score(pred, gt) == 1:
         return 1
     for s in gt:
+        # only check substring directly for prediction with more than 1 words
+        pred_words = pred.split()
+        if len(pred_words) > 1 and pred in s:
+            if check_substring_exception(pred, s):
+                return 1
+
         gt_words = s.split()
+        gt_words = [w for w in gt_words if w not in stopwords]  # remove stop words
+
         if pred in gt_words:
             return 1
+
         for w in gt_words:
             if w in pred:
                 return 1
     return 0
+
+
+def check_substring_exception(s1, s2):
+    return f'{s1}___{s2}' not in SUBSTRING_EXCEPTIONS and f'{s2}___{s1}' not in SUBSTRING_EXCEPTIONS
 
 
 # https://huggingface.co/tasks/sentence-similarity
@@ -89,7 +107,7 @@ def vqa_acc(pred, gt):
 # depending on the model, answer might be given within a complete sentence. e.g.: [answer] The length is 300 meters
 # we need to extract "The length is 300 meters" only
 def extract_answer(answer_text):
-    if answer_text.startswith('Answer:'):
+    if answer_text.lower().startswith('answer:'):
         return answer_text[7:].strip()
     return answer_text.strip()
 
@@ -355,8 +373,8 @@ if __name__ == '__main__':
     parser.add_argument('--model', type=str, required=True)
     args = parser.parse_args()
 
-    compute_score([f'result_{args.model}/output_{args.ds}', f'result_{args.model}/output_{args.ds}_test'], f'result_{args.model}/output_{args.ds}_score')
-    # anaylysis_score(f'result_{args.model}/output_{args.ds}_score')
+    # compute_score([f'result_{args.model}/output_{args.ds}', f'result_{args.model}/output_{args.ds}_test'], f'result_{args.model}/output_{args.ds}_score')
+    anaylysis_score(f'result_{args.model}/output_{args.ds}_score')
 
     # compute_score_multichoice(f'/Volumes/DATA/_Code/Git/tdthesis/ds/output/small_set/export_{args.ds}',
     #                           f'result_llava/{args.ds}.jsonl', f'result_llava/answers/merge_{args.ds}.jsonl')
