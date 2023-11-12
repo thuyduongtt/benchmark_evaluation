@@ -162,6 +162,9 @@ def compute_score(list_of_result_dir, output_dir, limit=0):
         if 0 < limit <= count:
             break
         for csvfile in Path(folder).iterdir():
+            if csvfile.name.startswith('.'):
+                continue
+
             if 0 < limit <= count:
                 break
             csv_file = f'{csvfile.parent}/{csvfile.name}'
