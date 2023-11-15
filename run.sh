@@ -17,4 +17,10 @@ case $1 in
   6)
     python analysis_result.py --ds balanced_10 --model lavis
     ;;
+  7)
+    python analysis_result.py --ds unbalanced --model pretrain_opt6.7b
+    ;;
+  8)
+    python analysis_result.py --ds balanced_10 --model pretrain_opt6.7b
+    ;;
 esac

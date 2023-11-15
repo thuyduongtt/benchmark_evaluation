@@ -7,6 +7,7 @@ import os
 
 # count the number of rows in result file
 def count_rows(path_to_result_dir):
+    total = 0
     all_files = []
     for file in Path(path_to_result_dir).iterdir():
         if file.suffix != '.csv':
@@ -20,6 +21,9 @@ def count_rows(path_to_result_dir):
             csv_reader = csv.DictReader(csv_file)
             n_row = sum(1 for _ in csv_reader)
             print(file, '|', n_row)
+            total += n_row
+
+    print('Total:', total)
 
 
 # there is a bug in calculating substring_score
@@ -94,11 +98,14 @@ def find_duplicate_results(path_to_result_dir, auto_remove=False):
                     to_remove_files.append(file)
                     break
 
-    print('Found:', len(to_remove_files))
+    print('Total:', len(all_files), '| Found:', len(to_remove_files))
     print('\n'.join(to_remove_files))
 
+    if len(to_remove_files) == 0:
+        return
+
     # start removing files
-    if auto_remove:
+    if auto_remove or input('Remove these files? [y/N]: ') in ['y', 'Y']:
         for file in to_remove_files:
             # remove the corresponding score
             score_file = f'{path_to_result_dir}_score/{file}'
@@ -168,7 +175,7 @@ def fix_substring_score(path_to_score_dir, limit=0):
 
 
 if __name__ == '__main__':
-    # find_wrong_substring_score('result_blip2/output_balanced_10_score')
-    # find_duplicate_results('result_lavis/output_unbalanced', auto_remove=False)
-    count_rows('result_lavis/output_balanced_10')
-    # fix_substring_score('result_kosmos/output_balanced_10_score')
+    # find_wrong_substring_score('results/result_blip2/output_balanced_10_score')
+    find_duplicate_results('results/result_pretrain_opt6.7b/output_unbalanced_test', auto_remove=False)
+    # count_rows('results/result_pretrain_opt6.7b/output_pretrain_opt6.7b_unbalanced')
+    # fix_substring_score('results/result_kosmos/output_balanced_10_score')

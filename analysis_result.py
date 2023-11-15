@@ -12,6 +12,7 @@ from SUBSTRING_EXCEPTIONS import SUBSTRING_EXCEPTIONS
 
 ANSWER_COL_INDEX = 3
 PREDICTION_COL_INDEX = 4
+MAX_HOP = 3
 
 METRICS = ['exact_match', 'substring', 'similarity']
 
@@ -350,7 +351,9 @@ def anaylysis_score(result_dir, limit=0):
                 score_by_hop[n_hop] = Score()
             total_by_hop[n_hop] += 1
 
-            if row['has_scene_graph']:
+            has_scene_graph = ast.literal_eval(row['has_scene_graph'])
+
+            if has_scene_graph:
                 total_by_scene_graph['with'] += 1
             else:
                 total_by_scene_graph['without'] += 1
@@ -362,7 +365,7 @@ def anaylysis_score(result_dir, limit=0):
                 val = ast.literal_eval(row[s])
                 score[s] += val
                 score_by_hop[n_hop][s] += val
-                score_by_scene_graph['with' if row['has_scene_graph'] else 'without'][s] += val
+                score_by_scene_graph['with' if has_scene_graph else 'without'][s] += val
                 score_by_ds[ds_name][s] += val
 
         f.close()
@@ -371,8 +374,8 @@ def anaylysis_score(result_dir, limit=0):
     for s in METRICS:
         print('=====', s)
         print('Acc:', f'{get_ratio(score[s], total):.4f}')
-        for h in score_by_hop.keys():
-            print(f'{h}-hop:', f'{get_ratio(score_by_hop[h][s], total_by_hop[n_hop]):.4f}')
+        for h in range(1, MAX_HOP + 1):
+            print(f'{h}-hop:', f"{get_ratio(score_by_hop[f'{h}'][s], total_by_hop[f'{h}']):.4f}")
         print('W/ Scene graph:', f"{get_ratio(score_by_scene_graph['with'][s], total_by_scene_graph['with']):.4f}")
         print('W/O Scene graph:',
               f"{get_ratio(score_by_scene_graph['without'][s], total_by_scene_graph['without']):.4f}")
@@ -382,12 +385,16 @@ def anaylysis_score(result_dir, limit=0):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ds', type=str, required=True)
     parser.add_argument('--model', type=str, required=True)
+    parser.add_argument('--ds', type=str, required=True)
     args = parser.parse_args()
 
-    compute_score([f'result_{args.model}/output_{args.ds}', f'result_{args.model}/output_{args.ds}_test'], f'result_{args.model}/output_{args.ds}_score')
-    # anaylysis_score(f'result_{args.model}/output_{args.ds}_score')
+    print(args)
 
-    # compute_score_multichoice(f'/Volumes/DATA/_Code/Git/tdthesis/ds/output/small_set/export_{args.ds}',
-    #                           f'result_llava/{args.ds}.jsonl', f'result_llava/answers/merge_{args.ds}.jsonl')
+    compute_score([f'results/result_{args.model}/output_{args.ds}',
+                   f'results/result_{args.model}/output_{args.ds}_test'],
+                  f'results/result_{args.model}/output_{args.ds}_score')
+    # anaylysis_score(f'results/result_{args.model}/output_{args.ds}_score')
+
+    # compute_score_multichoice(f'../export_{args.ds}', f'result_llava/{args.ds}.jsonl',
+    #                           f'result_llava/answers/merge_{args.ds}.jsonl')
