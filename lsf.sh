@@ -1,4 +1,4 @@
-#BSUB -J EVAL[7-8]               # Specify the job name
+#BSUB -J EVAL[9-10]               # Specify the job name
 #BSUB -W 24:00                # Specify the maximum runtime in "hours:minutes"
 #BSUB -o %x.%j.out            # Determine where the output will be written
 #BSUB -e %x.%j.err            # The same goes for the error file

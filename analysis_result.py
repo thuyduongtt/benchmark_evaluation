@@ -389,12 +389,21 @@ if __name__ == '__main__':
     parser.add_argument('--ds', type=str, required=True)
     args = parser.parse_args()
 
-    print(args)
+    result_dir = []
+    for d in Path(f'results/result_{args.model}/').iterdir():
+        if d.is_dir() and d.name.startswith('output_') and (
+                d.name.endswith(f'{args.ds}') or d.name.endswith(f'{args.ds}_test')):
+            result_dir.append(f'results/result_{args.model}/{d.name}')
 
-    compute_score([f'results/result_{args.model}/output_{args.ds}',
-                   f'results/result_{args.model}/output_{args.ds}_test'],
-                  f'results/result_{args.model}/output_{args.ds}_score')
+    print('Found these directories for score computing:')
+    print(result_dir)
+
+    compute_score(result_dir, f'results/result_{args.model}/output_{args.ds}_score')
+
     # anaylysis_score(f'results/result_{args.model}/output_{args.ds}_score')
 
     # compute_score_multichoice(f'../export_{args.ds}', f'result_llava/{args.ds}.jsonl',
     #                           f'result_llava/answers/merge_{args.ds}.jsonl')
+
+    # ans = extract_answer('<image> Question: Where is the video game on the ground from? Short answer: [answer] The video game is on the ground from the swimming pool.<|endofchunk|>')
+    # print(ans)

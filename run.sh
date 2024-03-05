@@ -23,4 +23,10 @@ case $1 in
   8)
     python analysis_result.py --ds balanced_10 --model pretrain_opt6.7b
     ;;
+  9)
+    python analysis_result.py --ds unbalanced --model instructBLIP_flant
+    ;;
+  10)
+    python analysis_result.py --ds balanced_10 --model instructBLIP_flant
+    ;;
 esac
