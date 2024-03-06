@@ -9,12 +9,10 @@ import jsonlines
 import ijson
 import spacy
 from SUBSTRING_EXCEPTIONS import SUBSTRING_EXCEPTIONS
+from CONSTS import *
+from Score import Score
+from utils import get_ratio
 
-ANSWER_COL_INDEX = 3
-PREDICTION_COL_INDEX = 4
-MAX_HOP = 3
-
-METRICS = ['exact_match', 'substring', 'similarity']
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -23,34 +21,6 @@ similarity_model = None
 
 en = spacy.load("en_core_web_sm")
 stopwords = en.Defaults.stop_words
-
-
-class Score:
-    exact_match: int = 0
-    substring: int = 0
-    similarity: float = 0.0
-
-    def __getitem__(self, item):
-        if item == 'exact_match':
-            return self.exact_match
-        if item == 'substring':
-            return self.substring
-        if item == 'similarity':
-            return self.similarity
-
-    def __setitem__(self, key, value):
-        if key == 'exact_match':
-            self.exact_match = value
-        if key == 'substring':
-            self.substring = value
-        if key == 'similarity':
-            self.similarity = value
-
-    def __str__(self):
-        return f'exact_match: {self.exact_match}; substring: {self.substring}; similarity: {self.similarity:.4f};'
-
-    def to_list(self):
-        return [self[k] for k in METRICS]
 
 
 # gt is the ground truth list of answers
@@ -111,12 +81,6 @@ def extract_answer(answer_text):
     if answer_text.lower().startswith('answer:'):
         return answer_text[7:].strip()
     return answer_text.strip()
-
-
-def get_ratio(a, b):
-    if b == 0:
-        return 0
-    return a / b
 
 
 '''
@@ -301,88 +265,6 @@ def compute_score_multichoice(path_to_dataset, question_jsonl, answer_jsonl):
         print(ds, f"{get_ratio(score_by_ds[ds], total_by_ds[ds]):.4f}")
 
 
-def anaylysis_score(result_dir, limit=0):
-    total = 0
-    score = Score()
-
-    total_by_hop = {}
-    score_by_hop = {}
-
-    total_by_scene_graph = {
-        'with': 0,
-        'without': 0
-    }
-    score_by_scene_graph = {
-        'with': Score(),
-        'without': Score()
-    }
-
-    total_by_ds = {
-        'VG': 0,
-        'GLDv2': 0
-    }
-    score_by_ds = {
-        'VG': Score(),
-        'GLDv2': Score()
-    }
-
-    count = 0
-    for csvfile in Path(result_dir).iterdir():
-        if 0 < limit <= count:
-            break
-        csv_file = f'{csvfile.parent}/{csvfile.name}'
-        f = open(csv_file)
-
-        count += 1
-
-        reader = csv.DictReader(f)
-        for row in reader:
-            # there's a bug that the answer set is empty, ignore them
-            answer_str = row['answer'].lower()
-            answer = ast.literal_eval(answer_str)
-            if len(answer) == 0:
-                continue
-
-            total += 1
-
-            n_hop = row['n_hop']
-            if n_hop not in total_by_hop:
-                total_by_hop[n_hop] = 0
-                score_by_hop[n_hop] = Score()
-            total_by_hop[n_hop] += 1
-
-            has_scene_graph = ast.literal_eval(row['has_scene_graph'])
-
-            if has_scene_graph:
-                total_by_scene_graph['with'] += 1
-            else:
-                total_by_scene_graph['without'] += 1
-
-            ds_name = 'VG' if row['id'].startswith('VG_') else 'GLDv2'
-            total_by_ds[ds_name] += 1
-
-            for s in METRICS:
-                val = ast.literal_eval(row[s])
-                score[s] += val
-                score_by_hop[n_hop][s] += val
-                score_by_scene_graph['with' if has_scene_graph else 'without'][s] += val
-                score_by_ds[ds_name][s] += val
-
-        f.close()
-
-    print('Total:', total, '| Score:', score)
-    for s in METRICS:
-        print('=====', s)
-        print('Acc:', f'{get_ratio(score[s], total):.4f}')
-        for h in range(1, MAX_HOP + 1):
-            print(f'{h}-hop:', f"{get_ratio(score_by_hop[f'{h}'][s], total_by_hop[f'{h}']):.4f}")
-        print('W/ Scene graph:', f"{get_ratio(score_by_scene_graph['with'][s], total_by_scene_graph['with']):.4f}")
-        print('W/O Scene graph:',
-              f"{get_ratio(score_by_scene_graph['without'][s], total_by_scene_graph['without']):.4f}")
-        for ds in total_by_ds.keys():
-            print(ds, f"{get_ratio(score_by_ds[ds][s], total_by_ds[ds]):.4f}")
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, required=True)
@@ -392,15 +274,13 @@ if __name__ == '__main__':
     result_dir = []
     for d in Path(f'results/result_{args.model}/').iterdir():
         if d.is_dir() and d.name.startswith('output_') and (
-                d.name.endswith(f'{args.ds}') or d.name.endswith(f'{args.ds}_test')):
+                d.name.endswith(args.ds) or d.name.endswith(f'{args.ds}_test')):
             result_dir.append(f'results/result_{args.model}/{d.name}')
 
     print('Found these directories for score computing:')
     print(result_dir)
 
     compute_score(result_dir, f'results/result_{args.model}/output_{args.ds}_score')
-
-    # anaylysis_score(f'results/result_{args.model}/output_{args.ds}_score')
 
     # compute_score_multichoice(f'../export_{args.ds}', f'result_llava/{args.ds}.jsonl',
     #                           f'result_llava/answers/merge_{args.ds}.jsonl')
