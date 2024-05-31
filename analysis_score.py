@@ -105,7 +105,10 @@ def anaylysis_score(result_dir, limit=0, multichoice=False):
 
             else:
                 for s in METRICS:
-                    val = ast.literal_eval(row[s])
+                    try:
+                        val = ast.literal_eval(row[s])
+                    except ValueError:
+                        print('ValueError:', csv_file, row['id'], row['question'])
                     score[s] += val
                     score_by_hop[n_hop][s] += val
                     score_by_scene_graph['with' if has_scene_graph else 'without'][s] += val
@@ -135,12 +138,10 @@ def check_pred(pred, ans_list):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='instructBLIP_mc')
+    parser.add_argument('--model', type=str, default='mPLUGOwl2')
     parser.add_argument('--ds', type=str, default='balanced_10')
     parser.add_argument('--multichoice', action='store_true')
     args = parser.parse_args()
-
-    print(args)
 
     score_dir = []
     for d in Path(f'results/result_{args.model}/').iterdir():
@@ -151,6 +152,8 @@ if __name__ == '__main__':
 
     print('Found directory for score analysis:')
     print(score_dir)
+
+    print(args)
 
     if len(score_dir) > 0:
         anaylysis_score(score_dir, multichoice=args.multichoice)
